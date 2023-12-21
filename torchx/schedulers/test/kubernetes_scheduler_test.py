@@ -158,7 +158,7 @@ class KubernetesSchedulerTest(unittest.TestCase):
         )
 
         app = _test_app()
-        pod = role_to_pod("name", app.roles[0], service_account="srvacc")
+        pod = role_to_pod("name", app.roles[0], service_account="srvacc", priority_class_name="high")
 
         limits = {
             "cpu": "2000m",
@@ -222,6 +222,7 @@ class KubernetesSchedulerTest(unittest.TestCase):
                     ),
                 ],
                 node_selector={},
+                priority_class_name=priority_class
             ),
             metadata=V1ObjectMeta(
                 annotations={
@@ -352,7 +353,7 @@ spec:
                 specs.VolumeMount(src="name", dst_path="/dst", read_only=True),
             ],
         )
-        pod = role_to_pod("foo", role, service_account="")
+        pod = role_to_pod("foo", role, service_account="", priority_class_name=None)
         self.assertEqual(
             pod.spec.volumes,
             [
@@ -401,7 +402,7 @@ spec:
                 specs.DeviceMount(src_path="foo2", dst_path="bar2", permissions="r"),
             ],
         )
-        pod = role_to_pod("foo", role, service_account="")
+        pod = role_to_pod("foo", role, service_account="", priority_class_name=None)
         self.assertEqual(
             pod.spec.volumes[1:],
             [
@@ -451,7 +452,7 @@ spec:
                 },
             ),
         )
-        pod = role_to_pod("foo", role, service_account="")
+        pod = role_to_pod("foo", role, service_account="", priority_class_name=None)
         self.assertEqual(
             pod.spec.containers[0].resources.limits,
             {
@@ -478,7 +479,7 @@ spec:
                 },
             ),
         )
-        pod = role_to_pod("foo", role, service_account="")
+        pod = role_to_pod("foo", role, service_account="", priority_class_name=None)
         self.assertEqual(
             pod.spec.node_selector,
             {

@@ -175,7 +175,7 @@ def sanitize_for_serialization(obj: object) -> object:
     return api.sanitize_for_serialization(obj)
 
 
-def role_to_pod(name: str, role: Role, service_account: Optional[str]) -> "V1Pod":
+def role_to_pod(name: str, role: Role, service_account: Optional[str], priority_class_name: Optional[str]) -> "V1Pod":
     from kubernetes.client.models import (  # noqa: F811 redefinition of unused
         V1Container,
         V1ContainerPort,
@@ -326,6 +326,7 @@ def role_to_pod(name: str, role: Role, service_account: Optional[str]) -> "V1Pod
             service_account_name=service_account,
             volumes=volumes,
             node_selector=node_selector,
+            priority_class=priority_class_name
         ),
         metadata=V1ObjectMeta(
             annotations={
@@ -374,7 +375,7 @@ def app_to_resource(
             if role_idx == 0 and replica_id == 0:
                 replica_role.env["TORCHX_RANK0_HOST"] = "localhost"
 
-            pod = role_to_pod(name, replica_role, service_account)
+            pod = role_to_pod(name, replica_role, service_account, priority_class)
             pod.metadata.labels.update(
                 pod_labels(
                     app=app,
@@ -414,8 +415,6 @@ does NOT support retries correctly. More info: https://github.com/volcano-sh/vol
             "env": [],
         },
     }
-    if priority_class is not None:
-        job_spec["priorityClassName"] = priority_class
 
     resource: Dict[str, object] = {
         "apiVersion": "batch.volcano.sh/v1alpha1",
